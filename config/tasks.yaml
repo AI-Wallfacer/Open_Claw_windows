@@ -1,0 +1,9 @@
+tasks:
+  - name: demo-print-time
+    command: 'python -c "import datetime; print(\"UTC now:\", datetime.datetime.utcnow().isoformat())"'
+    timeout_seconds: 20
+
+  - name: demo-redis-ping
+    command: 'python -c "import os, redis; r = redis.Redis.from_url(os.getenv(\"REDIS_URL\")); print(\"Redis ping:\", r.ping())"'
+    timeout_seconds: 20
+

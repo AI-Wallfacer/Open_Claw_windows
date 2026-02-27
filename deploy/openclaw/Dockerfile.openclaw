@@ -1,0 +1,16 @@
+FROM python:3.11-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+# 将 OpenClaw 源码放在与本文件同级目录的上两级（项目根）时可直接使用。
+COPY . /app
+
+RUN pip install --no-cache-dir -U pip && \
+    if [ -f requirements.txt ]; then pip install --no-cache-dir -r requirements.txt; fi
+
+# 默认命令可被 compose 中 OPENCLAW_API_CMD 覆盖
+CMD ["python", "-m", "openclaw.api"]
+

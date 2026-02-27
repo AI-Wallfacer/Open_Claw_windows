@@ -1,0 +1,114 @@
+name: openclaw-local
+
+services:
+  openclaw-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: openclaw-local-custom
+    container_name: openclaw-gateway
+    environment:
+      HOME: /home/node
+      TERM: xterm-256color
+      TZ: ${TZ}
+      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN}
+      SELF_API_URL: ${SELF_API_URL}
+      SELF_API_KEY: ${SELF_API_KEY}
+      FEISHU_APP_ID: ${FEISHU_APP_ID}
+      FEISHU_APP_SECRET: ${FEISHU_APP_SECRET}
+      CLAUDE_AI_SESSION_KEY: ${CLAUDE_AI_SESSION_KEY}
+      CLAUDE_WEB_SESSION_KEY: ${CLAUDE_WEB_SESSION_KEY}
+      CLAUDE_WEB_COOKIE: ${CLAUDE_WEB_COOKIE}
+      HTTP_PROXY: ${HTTP_PROXY}
+      HTTPS_PROXY: ${HTTPS_PROXY}
+      NO_PROXY: ${NO_PROXY}
+    entrypoint: ["/entrypoint.sh"]
+    command:
+      - sh
+      - -c
+      - >-
+        node -e "require('net').createServer(s=>{const c=require('net').connect(18792,'127.0.0.1');c.on('error',()=>s.destroy());s.on('error',()=>c.destroy());s.pipe(c);c.pipe(s)}).listen(18793,'0.0.0.0')" &
+        exec node dist/index.js gateway --allow-unconfigured --bind lan --port 18789
+    volumes:
+      - ./entrypoint.sh:/entrypoint.sh:ro
+      - ./volumes/openclaw/config:/home/node/.openclaw
+      - ./volumes/openclaw/workspace:/home/node/.openclaw/workspace
+      - ./volumes/openclaw/logs:/home/node/.openclaw/logs
+      # projects/desktop 挂到 workspace 内，否则 write/edit 会报 "Path escapes workspace root"
+      - ${PROJECTS_DIR}:/home/node/.openclaw/workspace/projects
+      - ${PROJECTS_DIR}:/home/node/projects
+      - ${DESKTOP_DIR}:/home/node/.openclaw/workspace/desktop
+      - ${DESKTOP_DIR}:/home/node/desktop
+    ports:
+      - "127.0.0.1:${OPENCLAW_GATEWAY_PORT}:18789"
+      - "127.0.0.1:${OPENCLAW_BRIDGE_PORT}:18790"
+      - "127.0.0.1:18792:18793"
+    healthcheck:
+      test: ["CMD", "node", "-e", "const s=require('net').connect(18789,'127.0.0.1');s.on('connect',()=>{s.destroy();process.exit(0)});s.on('error',()=>process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 45s
+    init: true
+    restart: unless-stopped
+    stop_grace_period: 45s
+    cpus: "${OPENCLAW_GATEWAY_CPU_LIMIT}"
+    mem_limit: "${OPENCLAW_GATEWAY_MEM_LIMIT}"
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "10"
+    networks:
+      - openclaw-net
+
+  openclaw-cli:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: openclaw-local-custom
+    container_name: openclaw-cli
+    environment:
+      HOME: /home/node
+      TERM: xterm-256color
+      TZ: ${TZ}
+      NODE_OPTIONS: ${OPENCLAW_CLI_NODE_OPTIONS}
+      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN}
+      SELF_API_URL: ${SELF_API_URL}
+      SELF_API_KEY: ${SELF_API_KEY}
+      FEISHU_APP_ID: ${FEISHU_APP_ID}
+      FEISHU_APP_SECRET: ${FEISHU_APP_SECRET}
+      BROWSER: echo
+      CLAUDE_AI_SESSION_KEY: ${CLAUDE_AI_SESSION_KEY}
+      CLAUDE_WEB_SESSION_KEY: ${CLAUDE_WEB_SESSION_KEY}
+      CLAUDE_WEB_COOKIE: ${CLAUDE_WEB_COOKIE}
+      HTTP_PROXY: ${HTTP_PROXY}
+      HTTPS_PROXY: ${HTTPS_PROXY}
+      NO_PROXY: ${NO_PROXY}
+    entrypoint: ["node", "dist/index.js"]
+    volumes:
+      - ./volumes/openclaw/config:/home/node/.openclaw
+      - ./volumes/openclaw/workspace:/home/node/.openclaw/workspace
+      - ./volumes/openclaw/logs:/home/node/.openclaw/logs
+      # projects/desktop 挂到 workspace 内，否则 write/edit 会报 "Path escapes workspace root"
+      - ${PROJECTS_DIR}:/home/node/.openclaw/workspace/projects
+      - ${PROJECTS_DIR}:/home/node/projects
+      - ${DESKTOP_DIR}:/home/node/.openclaw/workspace/desktop
+      - ${DESKTOP_DIR}:/home/node/desktop
+
+    stdin_open: true
+    tty: true
+    init: true
+    restart: "no"
+    cpus: "${OPENCLAW_CLI_CPU_LIMIT}"
+    mem_limit: "${OPENCLAW_CLI_MEM_LIMIT}"
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
+    networks:
+      - openclaw-net
+networks:
+  openclaw-net:
+    driver: bridge

@@ -1,0 +1,57 @@
+name: local-task-template
+
+services:
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./runtime/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - task-net
+
+  worker:
+    build:
+      context: ./services/worker
+    env_file:
+      - .env
+    volumes:
+      - ./config:/config:ro
+      - ./runtime/state:/state
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "/app/healthcheck.py"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    init: true
+    stop_grace_period: 30s
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    networks:
+      - task-net
+
+networks:
+  task-net:
+    driver: bridge
+

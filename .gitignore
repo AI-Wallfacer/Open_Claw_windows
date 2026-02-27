@@ -1,0 +1,11 @@
+.env
+deploy/openclaw/.env
+projects/
+runtime/state/*
+runtime/redis/*
+!runtime/state/.gitkeep
+!runtime/redis/.gitkeep
+
+# OpenClaw 敏感数据（含 API Key、appSecret、gateway token）
+deploy/openclaw/volumes/
+

@@ -1,0 +1,11 @@
+# 默认：Windows 风格换行（CRLF）
+* text=auto
+
+# Shell 脚本强制 LF（在 Linux 容器内执行，不能是 CRLF）
+*.sh text eol=lf
+
+# YAML / JSON / Markdown 统一 LF
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.md text eol=lf
