@@ -10,7 +10,8 @@ New-Item -ItemType Directory -Force -Path ".\volumes\openclaw\config" | Out-Null
 New-Item -ItemType Directory -Force -Path ".\volumes\openclaw\workspace" | Out-Null
 New-Item -ItemType Directory -Force -Path ".\volumes\openclaw\logs" | Out-Null
 
-docker compose pull
-docker compose up -d openclaw-gateway
+# 只拉取官方基础镜像（openclaw-local-custom 是本地构建的，不在 Docker Hub）
+docker pull ghcr.io/openclaw/openclaw:main
+docker compose up -d --build openclaw-gateway
 docker compose ps
 
