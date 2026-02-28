@@ -15,24 +15,25 @@ inject_json() {
 }
 
 if [ -n "$SELF_API_KEY" ] && [ -f "$CFG" ]; then
+  # 娓呴櫎鍙兘娈嬬暀鐨勬棤鏁?auth 瀛楁
+  inject_json "$CFG" 'del(.models.providers.self.auth) | del(.models.providers.self2.auth)'
+
+  inject_json "$CFG" \
+    '.models.providers.self.apiKey=$k | .models.providers.self.baseUrl=$u' \
+    --arg k "$SELF_API_KEY" --arg u "$SELF_API_URL"
+
+  inject_json "$MDL" \
+    '.providers.self.apiKey=$k | .providers.self.baseUrl=$u' \
+    --arg k "$SELF_API_KEY" --arg u "$SELF_API_URL"
+
   if [ -n "$SELF_API_KEY_2" ]; then
-    # 澶?Key 妯″紡锛氬啓鍏?auth 鏁扮粍锛孫penClaw 鑷姩杞
     inject_json "$CFG" \
-      '.models.providers.self.baseUrl=$u | .models.providers.self.apiKey=$k1 | .models.providers.self.auth=[{"apiKey":$k1},{"apiKey":$k2}]' \
-      --arg u "$SELF_API_URL" --arg k1 "$SELF_API_KEY" --arg k2 "$SELF_API_KEY_2"
+      '.models.providers.self2.apiKey=$k | .models.providers.self2.baseUrl=$u' \
+      --arg k "$SELF_API_KEY_2" --arg u "$SELF_API_URL"
 
     inject_json "$MDL" \
-      '.providers.self.baseUrl=$u | .providers.self.apiKey=$k1 | .providers.self.auth=[{"apiKey":$k1},{"apiKey":$k2}]' \
-      --arg u "$SELF_API_URL" --arg k1 "$SELF_API_KEY" --arg k2 "$SELF_API_KEY_2"
-  else
-    # 鍗?Key 妯″紡
-    inject_json "$CFG" \
-      '.models.providers.self.apiKey=$k | .models.providers.self.baseUrl=$u' \
-      --arg k "$SELF_API_KEY" --arg u "$SELF_API_URL"
-
-    inject_json "$MDL" \
-      '.providers.self.apiKey=$k | .providers.self.baseUrl=$u' \
-      --arg k "$SELF_API_KEY" --arg u "$SELF_API_URL"
+      '.providers.self2.apiKey=$k | .providers.self2.baseUrl=$u' \
+      --arg k "$SELF_API_KEY_2" --arg u "$SELF_API_URL"
   fi
 
   printf '{"self":"%s"}\n' "$SELF_API_KEY" > "$AUTH"

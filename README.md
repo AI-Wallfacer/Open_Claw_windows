@@ -79,7 +79,7 @@ docker compose version
 ### 1. 克隆仓库
 
 ```powershell
-git clone https://github.com/你的用户名/openclaw.git
+git clone https://github.com/AI-Wallfacer/Open_Claw_windows.git
 cd openclaw
 ```
 
