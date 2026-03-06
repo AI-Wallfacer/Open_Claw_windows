@@ -15,8 +15,7 @@ inject_json() {
 }
 
 if [ -n "$SELF_API_KEY" ] && [ -f "$CFG" ]; then
-  # 娓呴櫎鍙兘娈嬬暀鐨勬棤鏁?auth 瀛楁
-  inject_json "$CFG" 'del(.models.providers.self.auth) | del(.models.providers.self2.auth)'
+  # 濞撳懘娅庨崣顖濆厴濞堝鏆€閻ㄥ嫭妫ら弫?auth 鐎涙顔?  inject_json "$CFG" 'del(.models.providers.self.auth) | del(.models.providers.self2.auth)'
 
   inject_json "$CFG" \
     '.models.providers.self.apiKey=$k | .models.providers.self.baseUrl=$u' \
@@ -36,7 +35,11 @@ if [ -n "$SELF_API_KEY" ] && [ -f "$CFG" ]; then
       --arg k "$SELF_API_KEY_2" --arg u "$SELF_API_URL"
   fi
 
-  printf '{"self":"%s"}\n' "$SELF_API_KEY" > "$AUTH"
+  if [ -n "$SELF_API_KEY_2" ]; then
+    printf '{"self":"%s","self2":"%s"}\n' "$SELF_API_KEY" "$SELF_API_KEY_2" > "$AUTH"
+  else
+    printf '{"self":"%s"}\n' "$SELF_API_KEY" > "$AUTH"
+  fi
 fi
 
 if [ -n "$FEISHU_APP_ID" ] && [ -f "$CFG" ]; then

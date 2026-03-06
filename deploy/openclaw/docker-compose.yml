@@ -111,6 +111,59 @@ services:
         max-file: "5"
     networks:
       - openclaw-net
+
+  openclaw-briefing-scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: openclaw-local-custom
+    container_name: openclaw-briefing-scheduler
+    environment:
+      HOME: /home/node
+      TERM: xterm-256color
+      TZ: ${TZ}
+    entrypoint:
+      - sh
+      - -c
+    command:
+      - >-
+        while true; do
+          python3 /home/node/.openclaw/workspace/skills/ai-daily-briefing/send_feishu_briefing.py;
+          sleep 300;
+        done
+    volumes:
+      - ./volumes/openclaw/config:/home/node/.openclaw
+      - ./volumes/openclaw/workspace:/home/node/.openclaw/workspace
+      - ./volumes/openclaw/logs:/home/node/.openclaw/logs
+    init: true
+    restart: unless-stopped
+    cpus: "0.25"
+    mem_limit: "256m"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - openclaw-net
+  searxng:
+    image: searxng/searxng:latest
+    container_name: searxng
+    environment:
+      - TZ=${TZ}
+    volumes:
+      - ./volumes/searxng/settings.yml:/etc/searxng/settings.yml:ro
+    restart: unless-stopped
+    cpus: 0.50
+    mem_limit: 512m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - openclaw-net
+
 networks:
   openclaw-net:
     driver: bridge

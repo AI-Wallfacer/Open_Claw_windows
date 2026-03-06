@@ -12,6 +12,5 @@ New-Item -ItemType Directory -Force -Path ".\volumes\openclaw\logs" | Out-Null
 
 # 只拉取官方基础镜像（openclaw-local-custom 是本地构建的，不在 Docker Hub）
 docker pull ghcr.io/openclaw/openclaw:main
-docker compose up -d --build openclaw-gateway
+docker compose up -d --build
 docker compose ps
-
